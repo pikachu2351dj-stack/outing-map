@@ -45,6 +45,9 @@ h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;text-wrap:balan
 .mk.wifi{width:20px;height:20px;background:var(--wifi)}.mk.wc{width:24px;height:24px;background:var(--wc)}.mk.sh{width:24px;height:24px;background:var(--sh);border-radius:7px}.mk.sh.off{background:#aab2bf}
 .mk.wc.off{background:#aab2bf}
 .mk.off{opacity:.75}
+.mk.est{border:2.5px dashed #3b2a12}
+.mk.est.off{border-color:#5d6675}
+.estkey{display:inline-block;width:12px;height:12px;border-radius:3px;border:2px dashed #3b2a12;background:var(--sh);vertical-align:-1px;margin-right:4px}
 .chip .ic{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}.chip .ic svg{width:70%;height:70%}
 .mk.me{width:16px;height:16px;background:var(--me);border:3px solid #fff;cursor:default}
 .mk.sel{box-shadow:0 0 0 3px var(--fg)}
@@ -117,7 +120,7 @@ aside .ref{padding:0 16px 10px;color:var(--muted);font-size:12px;border-bottom:1
     <div id="map"></div>
     <div id="err" hidden></div>
     <div class="zoom"><button id="zIn" aria-label="확대">+</button><button id="zOut" aria-label="축소">−</button><button id="zLoc" aria-label="내 위치 찾기" title="내 위치 찾기" style="font-size:14px">◎</button><button id="zFit" aria-label="전체 보기" title="전체 보기" style="font-size:12px">⤢</button></div>
-    <div class="hint">◎ 버튼으로 내 위치 찾기 · 지도 빈 곳을 누르면 그 자리를 <b style="color:var(--me)">내 위치</b>로 지정 · 점을 누르면 상세정보</div>
+    <div class="hint">◎ 버튼으로 내 위치 찾기 · 지도 빈 곳을 누르면 그 자리를 <b style="color:var(--me)">내 위치</b>로 지정 · 점을 누르면 상세정보 · <span class="estkey"></span>점선 = 운영시간 미등록</div>
   </div>
   <aside>
     <h2>내 위치에서 가까운 시설</h2>
@@ -132,7 +135,7 @@ aside .ref{padding:0 16px 10px;color:var(--muted);font-size:12px;border-bottom:1
     <h2>시간대별 이용 가능 시설 수</h2>
     <p>평일 개방·운영시간 기준입니다. 막대를 누르면 그 시각으로 지도가 바뀝니다.</p>
     <h3 style="margin:12px 0 0;font-size:13px;color:var(--wc)">공중화장실 303곳</h3><div class="chart" id="chart"></div>
-    <h3 style="margin:12px 0 0;font-size:13px;color:var(--sh)"><span id="shT">한파쉼터</span> <span id="shN"></span>곳 <span style="color:var(--muted);font-weight:400">(운영시간 미등록 경로당 33곳은 제외하고 셈)</span></h3><div class="chart" id="chart2"></div>
+    <h3 style="margin:12px 0 0;font-size:13px;color:var(--sh)"><span id="shT">한파쉼터</span> <span id="shN"></span>곳 <span style="color:var(--muted);font-weight:400"><span class="estkey"></span>운영시간 미등록 33곳은 09~18시 운영으로 가정 (지도에서 점선 테두리)</span></h3><div class="chart" id="chart2"></div>
   </section>
   <section class="panel note" style="border-left-color:var(--wc)">
     <h2>화장실 주소 → 좌표 변환</h2>
@@ -150,7 +153,7 @@ const KAKAO_JS_KEY = "b3aaf1b2bd799bedb26ac1f77ae44a7f";
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 (function(){
-const DATA=window.__DATA; const toilets=DATA.t, wifis=DATA.w; let shelters=DATA.s;
+const DATA=window.__DATA; const toilets=DATA.t, wifis=DATA.w; DATA.s.concat(DATA.s2).forEach(x=>{if(!x.h)x.est=true;}); let shelters=DATA.s;
 const S={wc:true,wifi:true,sh:true,season:"winter",hour:14,me:{lat:37.4495,lng:126.6560},sel:null,selType:null};
 const $=id=>document.getElementById(id);
 const ICON={
@@ -159,7 +162,7 @@ const ICON={
   sh:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3 2 11.3l1.3 1.5L5 11.4V21h5.2v-5.6h3.6V21H19v-9.6l1.7 1.4 1.3-1.5z"/></svg>'
 };
 document.querySelectorAll(".ic[data-i]").forEach(e=>e.innerHTML=ICON[e.dataset.i]);
-function isOpen(t,h){if(!t.h)return null;const[a,b]=t.h;if(a===0&&b>=24)return true;const x=h+.5;return a<b?(x>=a&&x<b):(x>=a||x<b);}
+function isOpen(t,h){const hh=t.h||(t.est?[9,18]:null);if(!hh)return null;const[a,b]=hh;if(a===0&&b>=24)return true;const x=h+.5;return a<b?(x>=a&&x<b):(x>=a||x<b);}
 function hav(a,b){const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lng-a.lng)*r;const s=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(s));}
 const fmtD=m=>m<1000?Math.round(m/10)*10+"m":(m/1000).toFixed(1)+"km";
 const placed=()=>toilets.filter(t=>t.lat!=null);
@@ -188,7 +191,7 @@ function renderList(){const ul=$("list");ul.innerHTML="";
   if(!ul.children.length)ul.innerHTML='<li style="padding:12px;color:var(--muted)">표시할 시설 종류를 하나 이상 켜세요.</li>';}
 function detailHtml(o,type){const d=hav(S.me,o);
   if(type==="sh"){const op=isOpen(o,S.hour);
-    return `<h3 style="color:var(--sh)">${esc(o.n)}</h3><div style="color:var(--muted)">${esc(o.a)}</div><dl><dt>거리</dt><dd>${fmtD(d)} (직선)</dd><dt>평일 운영</dt><dd>${o.od?esc(o.od):"운영시간 미등록"} ${op===true?'<span class="pill on">'+S.hour+'시 이용 가능</span>':op===false?'<span class="pill off">'+S.hour+'시 닫힘</span>':''}</dd><dt>수용 인원</dt><dd>${o.cap?o.cap+"명":"-"}</dd><dt>구분</dt><dd>${esc(o.k)}</dd>${S.season==="summer"?`<dt>냉방기</dt><dd>${o.ac?"있음":"정보 없음"}</dd>`:""}${o.rm?`<dt>비고</dt><dd>${esc(o.rm)}</dd>`:""}</dl>`;}
+    return `<h3 style="color:var(--sh)">${esc(o.n)}</h3><div style="color:var(--muted)">${esc(o.a)}</div><dl><dt>거리</dt><dd>${fmtD(d)} (직선)</dd><dt>평일 운영</dt><dd>${o.od?esc(o.od):"운영시간 미등록 (09~18시로 가정)"} ${op===true?'<span class="pill on">'+S.hour+'시 이용 가능</span>':op===false?'<span class="pill off">'+S.hour+'시 닫힘</span>':''}</dd><dt>수용 인원</dt><dd>${o.cap?o.cap+"명":"-"}</dd><dt>구분</dt><dd>${esc(o.k)}</dd>${S.season==="summer"?`<dt>냉방기</dt><dd>${o.ac?"있음":"정보 없음"}</dd>`:""}${o.rm?`<dt>비고</dt><dd>${esc(o.rm)}</dd>`:""}</dl>`;}
   if(type==="wc"){const op=isOpen(o,S.hour),yn=v=>v?"있음":"없음";
     return `<h3 style="color:var(--wc)">${esc(o.n)}</h3><div style="color:var(--muted)">${esc(o.a)}</div><dl><dt>거리</dt><dd>${fmtD(d)} (직선)</dd><dt>개방</dt><dd>${esc(o.o)}${o.od?" · "+esc(o.od):""} ${op===true?'<span class="pill on">'+S.hour+'시 이용 가능</span>':op===false?'<span class="pill off">'+S.hour+'시 닫힘</span>':''}</dd><dt>장애인용</dt><dd>${yn(o.dis)}</dd><dt>기저귀대</dt><dd>${yn(o.dia)}</dd><dt>비상벨</dt><dd>${yn(o.bell)}</dd><dt>구분</dt><dd>${esc(o.k)}</dd></dl>`;}
   return `<h3 style="color:var(--wifi)">${esc(o.n)}</h3><div style="color:var(--muted)">${esc(o.a)}</div><dl><dt>거리</dt><dd>${fmtD(d)} (직선)</dd><dt>위치</dt><dd>${esc(o.d||"-")}</dd><dt>시설</dt><dd>${esc(o.c)}</dd><dt>SSID</dt><dd>${esc(o.ssid)}</dd><dt>통신사</dt><dd>${esc(o.p)}</dd></dl>`;}
@@ -198,7 +201,7 @@ let map=null,K=null,meMk=null,meCirc=null,pop=null,mks=[];
 function select(o,type,quiet){S.sel=o;S.selType=type;$("detail").innerHTML=detailHtml(o,type);
   if(map){drawMarkers();if(!quiet){const p=new K.LatLng(o.lat,o.lng);
     if(pop)pop.setMap(null);const d=hav(S.me,o);
-    pop=new K.CustomOverlay({position:p,yAnchor:0,xAnchor:0,zIndex:10,content:`<div class="pop"><b style="color:${type==="wc"?"var(--wc)":type==="sh"?"var(--sh)":"var(--wifi)"}">${esc(o.n)}</b><br>${fmtD(d)} · ${type==="wc"?esc(o.o)+" "+esc(o.od):type==="sh"?(o.od?"평일 "+esc(o.od):"운영시간 미등록"):esc(o.d||o.c)}</div>`});
+    pop=new K.CustomOverlay({position:p,yAnchor:0,xAnchor:0,zIndex:10,content:`<div class="pop"><b style="color:${type==="wc"?"var(--wc)":type==="sh"?"var(--sh)":"var(--wifi)"}">${esc(o.n)}</b><br>${fmtD(d)} · ${type==="wc"?esc(o.o)+" "+esc(o.od):type==="sh"?(o.od?"평일 "+esc(o.od):"운영시간 미등록 · 09~18시 가정"):esc(o.d||o.c)}</div>`});
     pop.setMap(map);if(!map.getBounds().contain(p))map.panTo(p);}}
   renderList();}
 function drawMarkers(){mks.forEach(m=>m.setMap(null));mks=[];
@@ -206,7 +209,7 @@ function drawMarkers(){mks.forEach(m=>m.setMap(null));mks=[];
     el.addEventListener("click",ev=>{ev.stopPropagation();select(o,type);});
     const ov=new K.CustomOverlay({position:new K.LatLng(o.lat,o.lng),content:el,xAnchor:0,yAnchor:0,zIndex:type==="wc"?4:type==="sh"?3:2,clickable:true});ov.setMap(map);mks.push(ov);};
   if(S.wifi)wifis.forEach(w=>add(w,"wifi","wifi"));
-  if(S.sh)shelters.forEach(t=>add(t,"sh"+(isOpen(t,S.hour)===false?" off":""),"sh"));
+  if(S.sh)shelters.forEach(t=>add(t,"sh"+(t.est?" est":"")+(isOpen(t,S.hour)===false?" off":""),"sh"));
   if(S.wc)placed().forEach(t=>add(t,"wc"+(isOpen(t,S.hour)===false?" off":""),"wc"));}
 function setMe(lat,lng,label){S.me={lat,lng};
   if(map){const p=new K.LatLng(lat,lng);meMk.setPosition(p);meCirc.setPosition(p);}

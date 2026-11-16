@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>카카오맵 테스트</title>
+</head>
+<body>
+<p id="msg">불러오는 중…</p>
+<div id="map" style="width:100%;height:400px;background:#eee"></div>
+<script>
+window.onerror = function (m) { document.getElementById("msg").textContent = "오류: " + m; };
+</script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b3aaf1b2bd799bedb26ac1f77ae44a7f&autoload=false"
+        onerror="document.getElementById('msg').textContent='SDK를 불러오지 못함 (키 또는 도메인 문제)'"></script>
+<script>
+if (window.kakao && kakao.maps) {
+  kakao.maps.load(function () {
+    var map = new kakao.maps.Map(document.getElementById("map"), {
+      center: new kakao.maps.LatLng(37.4495, 126.6560), level: 4
+    });
+    new kakao.maps.Marker({ position: new kakao.maps.LatLng(37.4495, 126.6560) }).setMap(map);
+    document.getElementById("msg").textContent = "지도 생성 완료 (지도가 안 보이면 카카오맵 사용 설정 문제)";
+  });
+}
+</script>
+</body>
+</html>

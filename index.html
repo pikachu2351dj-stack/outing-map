@@ -34,8 +34,8 @@ h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;text-wrap:balan
 .seg button{border:0;background:var(--panel);color:var(--fg);font:inherit;padding:5px 12px;cursor:pointer}
 .seg button+button{border-left:1px solid var(--line)}
 .main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
-.mapbox{position:relative;background:var(--map);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:480px;touch-action:none}
-#map{position:absolute;inset:0}
+.mapbox{position:relative;background:var(--map);border:1px solid var(--line);border-radius:12px;overflow:hidden;height:560px;touch-action:none}
+#map{width:100%;height:100%}
 .zoom{z-index:20}.hint{z-index:20}
 .mk{width:10px;height:10px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);cursor:pointer;transform:translate(-50%,-50%)}
 .mk.wifi{background:var(--wifi)}.mk.wc{width:14px;height:14px;background:var(--wc)}.mk.wc.off{background:#c9ced8;border-color:#8a93a3}
@@ -73,7 +73,7 @@ aside .ref{padding:0 16px 10px;color:var(--muted);font-size:12px;border-bottom:1
 .upl label{border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;background:var(--soft)}
 .upl input{position:absolute;opacity:0;width:1px;height:1px}
 #uplmsg{font-size:12px;color:var(--muted)}
-@media (max-width:860px){.main,.two{grid-template-columns:1fr}.mapbox{min-height:380px}aside{max-height:none}.time{margin-left:0}}
+@media (max-width:860px){.main,.two{grid-template-columns:1fr}.mapbox{height:420px}aside{max-height:none}.time{margin-left:0}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -198,7 +198,8 @@ function initMap(){
   meCirc=new K.Circle({center:new K.LatLng(S.me.lat,S.me.lng),radius:300,strokeWeight:1.5,strokeColor:"#E5484D",strokeStyle:"dash",fillColor:"#E5484D",fillOpacity:.07});meCirc.setMap(map);
   K.event.addListener(map,"click",e=>{if(pop)pop.setMap(null);setMe(e.latLng.getLat(),e.latLng.getLng(),"지도에서 지정한 위치");});
   $("zIn").onclick=()=>map.setLevel(map.getLevel()-1);$("zOut").onclick=()=>map.setLevel(map.getLevel()+1);$("zFit").onclick=fitAll;
-  drawMarkers();fitAll();geocodeAll();}
+  map.relayout();drawMarkers();fitAll();geocodeAll();
+  window.addEventListener("resize",()=>map.relayout());}
 
 // ---- 주소 → 좌표 변환 ----
 const CACHE_KEY="toiletGeo_v1";let cache={};try{cache=JSON.parse(localStorage.getItem(CACHE_KEY)||"{}");}catch(_){}

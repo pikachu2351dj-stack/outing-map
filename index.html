@@ -39,9 +39,13 @@ h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;text-wrap:balan
 .mapbox{position:relative;background:var(--map);border:1px solid var(--line);border-radius:12px;overflow:hidden;height:560px;touch-action:none}
 #map{width:100%;height:100%}
 .zoom{z-index:20}.hint{z-index:20}
-.mk{width:10px;height:10px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);cursor:pointer;transform:translate(-50%,-50%)}
-.mk.wifi{background:var(--wifi)}.mk.wc{width:14px;height:14px;background:var(--wc)}.mk.sh{width:14px;height:14px;background:var(--sh);border-radius:3px}.mk.sh.off{background:#c9ced8;border-color:#8a93a3}
-.mk.wc.off{background:#c9ced8;border-color:#8a93a3}
+.mk{width:10px;height:10px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);cursor:pointer;transform:translate(-50%,-50%);flex:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+.mk svg{width:66%;height:66%;display:block}
+.mk:hover{transform:translate(-50%,-50%) scale(1.2)}
+.mk.wifi{width:20px;height:20px;background:var(--wifi)}.mk.wc{width:24px;height:24px;background:var(--wc)}.mk.sh{width:24px;height:24px;background:var(--sh);border-radius:7px}.mk.sh.off{background:#aab2bf}
+.mk.wc.off{background:#aab2bf}
+.mk.off{opacity:.75}
+.chip .ic{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}.chip .ic svg{width:70%;height:70%}
 .mk.me{width:16px;height:16px;background:var(--me);border:3px solid #fff;cursor:default}
 .mk.sel{box-shadow:0 0 0 3px var(--fg)}
 .pop{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.45;max-width:240px;transform:translate(-50%,calc(-100% - 14px));box-shadow:0 4px 12px rgba(0,0,0,.15)}
@@ -54,8 +58,9 @@ aside{background:var(--panel);border:1px solid var(--line);border-radius:12px;di
 aside h2{font-size:15px;margin:0;padding:14px 16px 6px}
 aside .ref{padding:0 16px 10px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line)}
 #list{list-style:none;margin:0;padding:6px 8px;overflow:auto;flex:1}
-#list li button{width:100%;text-align:left;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;border:0;background:none;color:var(--fg);font:inherit;padding:8px;border-radius:8px;cursor:pointer}
+#list li button{width:100%;text-align:left;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;border:0;background:none;color:var(--fg);font:inherit;padding:8px;border-radius:8px;cursor:pointer}
 #list li button:hover,#list li button.sel{background:var(--soft)}
+#list .ic svg{width:66%;height:66%}
 #list .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 #list .meta{color:var(--muted);font-size:12px}
 #list .dist{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px}
@@ -96,9 +101,9 @@ aside .ref{padding:0 16px 10px;color:var(--muted);font-size:12px;border-bottom:1
 </header>
 
 <div class="controls">
-  <button class="chip" id="tWc" aria-pressed="true"><span class="dot" style="background:var(--wc)"></span>화장실</button>
-  <button class="chip" id="tWifi" aria-pressed="true"><span class="dot" style="background:var(--wifi)"></span>무료 와이파이</button>
-  <button class="chip" id="tSh" aria-pressed="true"><span class="dot" style="background:var(--sh);border-radius:2px"></span><span id="shLbl">한파쉼터</span></button>
+  <button class="chip" id="tWc" aria-pressed="true"><span class="ic" data-i="wc" style="background:var(--wc)"></span>화장실</button>
+  <button class="chip" id="tWifi" aria-pressed="true"><span class="ic" data-i="wifi" style="background:var(--wifi)"></span>무료 와이파이</button>
+  <button class="chip" id="tSh" aria-pressed="true"><span class="ic" data-i="sh" style="background:var(--sh);border-radius:6px"></span><span id="shLbl">한파쉼터</span></button>
   <div class="seg" aria-label="쉼터 종류"><button id="bWin" aria-pressed="true">겨울 · 한파</button><button id="bSum" aria-pressed="false">여름 · 무더위</button></div>
   <div class="time">
     <div class="seg"><button id="bDay">낮 14시</button><button id="bNight">밤 23시</button></div>
@@ -148,6 +153,12 @@ const KAKAO_JS_KEY = "b3aaf1b2bd799bedb26ac1f77ae44a7f";
 const DATA=window.__DATA; const toilets=DATA.t, wifis=DATA.w; let shelters=DATA.s;
 const S={wc:true,wifi:true,sh:true,season:"winter",hour:14,me:{lat:37.4495,lng:126.6560},sel:null,selType:null};
 const $=id=>document.getElementById(id);
+const ICON={
+  wc:'<svg viewBox="0 0 24 24" fill="#fff"><circle cx="7" cy="4.2" r="2"/><path d="M5 7.5h4a1 1 0 0 1 1 1V14H8.6v7H5.4v-7H4V8.5a1 1 0 0 1 1-1z"/><circle cx="17" cy="4.2" r="2"/><path d="M15.2 7.5h3.6l2.2 7.5h-2.4V21h-3.2v-6H13z"/><rect x="11.5" y="3" width="1" height="18" opacity=".6"/></svg>',
+  wifi:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M6 12.6a9 9 0 0 1 12 0"/><path d="M9.4 16.1a4 4 0 0 1 5.2 0"/><circle cx="12" cy="19.4" r="1.2" fill="#fff" stroke="none"/></svg>',
+  sh:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3 2 11.3l1.3 1.5L5 11.4V21h5.2v-5.6h3.6V21H19v-9.6l1.7 1.4 1.3-1.5z"/></svg>'
+};
+document.querySelectorAll(".ic[data-i]").forEach(e=>e.innerHTML=ICON[e.dataset.i]);
 function isOpen(t,h){if(!t.h)return null;const[a,b]=t.h;if(a===0&&b>=24)return true;const x=h+.5;return a<b?(x>=a&&x<b):(x>=a||x<b);}
 function hav(a,b){const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lng-a.lng)*r;const s=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(s));}
 const fmtD=m=>m<1000?Math.round(m/10)*10+"m":(m/1000).toFixed(1)+"km";
@@ -172,7 +183,7 @@ function items(){const out=[];if(S.wc)placed().forEach(t=>out.push({type:"wc",o:
 function renderList(){const ul=$("list");ul.innerHTML="";
   items().forEach(i=>{const li=document.createElement("li"),b=document.createElement("button");const col=i.type==="wc"?"var(--wc)":i.type==="sh"?"var(--sh)":"var(--wifi)";let st="";
     if(i.type!=="wifi"){const o=isOpen(i.o,S.hour);st=o===true?'<span class="pill on">이용 가능</span>':o===false?'<span class="pill off">닫힘</span>':'';}
-    b.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${col}"></span><span style="min-width:0"><span class="nm">${esc(i.o.n)}${st}</span><span class="meta">${i.type==="wc"?"화장실 · "+esc(i.o.k):i.type==="sh"?(S.season==="summer"?"무더위쉼터 · ":"한파쉼터 · ")+esc(i.o.k):"와이파이 · "+esc(i.o.c)}</span></span><span class="dist">${fmtD(i.d)}</span>`;
+    b.innerHTML=`<span class="ic" style="width:22px;height:22px;border-radius:${i.type==="sh"?"6px":"50%"};background:${col};display:inline-flex;align-items:center;justify-content:center">${ICON[i.type]}</span><span style="min-width:0"><span class="nm">${esc(i.o.n)}${st}</span><span class="meta">${i.type==="wc"?"화장실 · "+esc(i.o.k):i.type==="sh"?(S.season==="summer"?"무더위쉼터 · ":"한파쉼터 · ")+esc(i.o.k):"와이파이 · "+esc(i.o.c)}</span></span><span class="dist">${fmtD(i.d)}</span>`;
     if(S.sel===i.o)b.classList.add("sel");b.onclick=()=>select(i.o,i.type);li.appendChild(b);ul.appendChild(li);});
   if(!ul.children.length)ul.innerHTML='<li style="padding:12px;color:var(--muted)">표시할 시설 종류를 하나 이상 켜세요.</li>';}
 function detailHtml(o,type){const d=hav(S.me,o);
@@ -191,7 +202,7 @@ function select(o,type,quiet){S.sel=o;S.selType=type;$("detail").innerHTML=detai
     pop.setMap(map);if(!map.getBounds().contain(p))map.panTo(p);}}
   renderList();}
 function drawMarkers(){mks.forEach(m=>m.setMap(null));mks=[];
-  const add=(o,cls,type)=>{const el=document.createElement("div");el.className="mk "+cls+(S.sel===o?" sel":"");el.title=o.n;
+  const add=(o,cls,type)=>{const el=document.createElement("div");el.className="mk "+cls+(S.sel===o?" sel":"");el.title=o.n;el.innerHTML=ICON[type];
     el.addEventListener("click",ev=>{ev.stopPropagation();select(o,type);});
     const ov=new K.CustomOverlay({position:new K.LatLng(o.lat,o.lng),content:el,xAnchor:0,yAnchor:0,zIndex:type==="wc"?4:type==="sh"?3:2,clickable:true});ov.setMap(map);mks.push(ov);};
   if(S.wifi)wifis.forEach(w=>add(w,"wifi","wifi"));
